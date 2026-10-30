@@ -45,14 +45,19 @@ if ! command -v goose >/dev/null || [[ $(goose --version) != *${GOOSE_VERSION#v}
   rm -rf "$tmp"
 fi
 
+echo "==> Goose config + launcher"
+[[ -f ~/.config/goose/config.yaml ]] || cp "$REPO/config/goose-config.yaml" ~/.config/goose/config.yaml
+ln -sfn "$REPO/bin/agent" ~/.local/bin/agent
+
+# Last, because it needs sudo from a real terminal (fails under non-TTY shells).
 echo "==> Goose Desktop $GOOSE_VERSION"
 deb=$DL/goose_${GOOSE_VERSION#v}_amd64.deb
 [[ -f $deb ]] || curl -fL -o "$deb" \
   "https://github.com/aaif-goose/goose/releases/download/$GOOSE_VERSION/goose_${GOOSE_VERSION#v}_amd64.deb"
-sudo apt install -y "$deb"
-
-echo "==> Goose config + launcher"
-[[ -f ~/.config/goose/config.yaml ]] || cp "$REPO/config/goose-config.yaml" ~/.config/goose/config.yaml
-ln -sfn "$REPO/bin/agent" ~/.local/bin/agent
+if dpkg -s goose >/dev/null 2>&1 && [[ $(dpkg-query -W -f='${Version}' goose) == ${GOOSE_VERSION#v}* ]]; then
+  echo "already installed"
+else
+  sudo apt install -y "$deb"
+fi
 
 echo "Done. Terminal: 'agent' (or 'agent --big'). Desktop: launch Goose from the app menu."
