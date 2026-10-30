@@ -1,0 +1,14 @@
+# Goose config shared by the CLI and Desktop app.
+# Installed to ~/.config/goose/config.yaml by scripts/install.sh (only if absent).
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3.5:4b
+OLLAMA_HOST: http://localhost:11434
+# smart_approve: auto-runs read-only tools, asks before risky ones
+GOOSE_MODE: smart_approve
+extensions:
+  developer:
+    bundled: true
+    enabled: true
+    name: developer
+    timeout: 600
+    type: builtin

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Terminal launcher for the local agent.
+#   agent            -> Goose session on qwen3.5:4b (fast default)
+#   agent --big      -> Goose session on qwen3.5:9b (smarter, ~2x slower)
+#   agent [args...]  -> extra args are passed to `goose session`
+set -euo pipefail
+
+model=qwen3.5:4b
+if [[ ${1:-} == --big ]]; then
+  model=qwen3.5:9b
+  shift
+fi
+
+if ! curl -fs http://localhost:11434/api/version >/dev/null; then
+  echo "Ollama is not running. Start it: systemctl --user start ollama" >&2
+  exit 1
+fi
+
+GOOSE_PROVIDER=ollama GOOSE_MODEL=$model exec goose session "$@"
