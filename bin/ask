@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Quick questions on the fast model (no agent, no tools).
+#   ask "what is the capital of Australia?"   -> one-shot answer
+#   echo "explain this" | ask                  -> question from stdin
+#   git diff | ask "summarize this"            -> question + piped context
+#   ask                                        -> interactive chat (/bye to quit)
+set -euo pipefail
+
+model=${ASK_MODEL:-granite4:tiny-h}
+
+if ! curl -fs http://localhost:11434/api/version >/dev/null; then
+  echo "Ollama is not running. Start it: systemctl --user start ollama" >&2
+  exit 1
+fi
+
+# `ollama run` also reads stdin when it isn't a TTY, so detach it for one-shot use.
+if [[ $# -gt 0 && ! -t 0 ]]; then
+  exec ollama run "$model" "$*"$'\n\n'"$(cat)" </dev/null
+elif [[ $# -gt 0 ]]; then
+  exec ollama run "$model" "$*" </dev/null
+elif [[ ! -t 0 ]]; then
+  exec ollama run "$model" "$(cat)" </dev/null
+else
+  exec ollama run "$model"
+fi
