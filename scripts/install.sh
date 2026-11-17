@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One-shot setup of the local agent stack. Idempotent; safe to re-run.
 #   1. Ollama (user install in ~/.local) as a user systemd service
-#   2. Models: qwen3.5:4b (default) + qwen3.5:9b (--big)
+#   2. Models: qwen3.5:4b (default) + qwen3.5:9b (--big) + granite4:tiny-h (ask)
 #   3. Goose CLI (~/.local/bin/goose)
 #   4. Goose Desktop (.deb, needs sudo)
 #   5. Goose config + `agent` launcher
@@ -35,6 +35,7 @@ until curl -fs http://localhost:11434/api/version >/dev/null; do sleep 1; done
 echo "==> Models"
 ~/.local/bin/ollama pull qwen3.5:4b
 ~/.local/bin/ollama pull qwen3.5:9b
+~/.local/bin/ollama pull granite4:tiny-h
 
 echo "==> Goose CLI $GOOSE_VERSION"
 if ! command -v goose >/dev/null || [[ $(goose --version) != *${GOOSE_VERSION#v}* ]]; then
@@ -48,6 +49,7 @@ fi
 echo "==> Goose config + launcher"
 [[ -f ~/.config/goose/config.yaml ]] || cp "$REPO/config/goose-config.yaml" ~/.config/goose/config.yaml
 ln -sfn "$REPO/bin/agent" ~/.local/bin/agent
+ln -sfn "$REPO/bin/ask" ~/.local/bin/ask
 
 # Last, because it needs sudo from a real terminal (fails under non-TTY shells).
 echo "==> Goose Desktop $GOOSE_VERSION"
@@ -60,4 +62,4 @@ else
   sudo apt install -y "$deb"
 fi
 
-echo "Done. Terminal: 'agent' (or 'agent --big'). Desktop: launch Goose from the app menu."
+echo "Done. Terminal: 'agent' (or 'agent --big'), quick questions: 'ask'. Desktop: launch Goose from the app menu."

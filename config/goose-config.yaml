@@ -1,14 +1,77 @@
 # Goose config shared by the CLI and Desktop app.
-# Installed to ~/.config/goose/config.yaml by scripts/install.sh (only if absent).
+# Installed to ~/.config/goose/config.yaml by scripts/install.sh.
+OLLAMA_HOST: http://localhost:11434
+OLLAMA_TIMEOUT: 600
+OLLAMA_STREAM_TIMEOUT: 600
+GOOSE_STREAM_TIMEOUT: 600
 GOOSE_PROVIDER: ollama
 GOOSE_MODEL: qwen3.5:4b
-OLLAMA_HOST: http://localhost:11434
-# smart_approve: auto-runs read-only tools, asks before risky ones
+# smart_approve: auto-runs read-only tools (read, search, fetch), asks before edits & shell commands
 GOOSE_MODE: smart_approve
 extensions:
   developer:
     bundled: true
     enabled: true
     name: developer
+    description: Write and edit files, and execute shell commands
+    display_name: Developer
     timeout: 600
     type: builtin
+  fetch:
+    enabled: true
+    type: stdio
+    cmd: uvx
+    args:
+      - mcp-server-fetch
+      - --ignore-robots-txt
+    description: Fetch web pages and convert to markdown
+    display_name: Web Fetch
+  duckduckgo:
+    enabled: true
+    type: stdio
+    cmd: npx
+    args:
+      - -y
+      - duckduckgo-mcp-server
+    description: Search the web via DuckDuckGo without API keys
+    display_name: Web Search (DuckDuckGo)
+  # Disable heavy extensions to keep prompt evaluation fast on CPU
+  extensionmanager:
+    enabled: false
+  skills:
+    enabled: false
+  summon:
+    enabled: false
+  chatrecall:
+    enabled: false
+  summarize:
+    enabled: false
+  code_execution:
+    enabled: false
+  apps:
+    enabled: false
+  scheduler:
+    enabled: false
+  analyze:
+    enabled: false
+  todo:
+    enabled: false
+  tom:
+    enabled: false
+  computercontroller:
+    enabled: false
+  autovisualiser:
+    enabled: false
+  memory:
+    enabled: false
+  tutorial:
+    enabled: false
+providers:
+  ollama:
+    enabled: true
+    model: qwen3.5:4b
+    configured: true
+active_provider: ollama
+GOOSE_TELEMETRY_ENABLED: false
+GOOSE_LIVE_VOICE_ENABLED: false
+voice_dictation_provider: model

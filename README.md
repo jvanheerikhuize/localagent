@@ -18,8 +18,24 @@ agent, usable from the terminal (`agent`) or the Goose Desktop app. Both share
 |---|---|---|---|---|
 | `qwen3.5:4b` | 3.3 GB | ~29 tok/s | ~3.6 tok/s | **default** (`agent`) |
 | `qwen3.5:9b` | 6.6 GB | ~16 tok/s | ~2.6 tok/s | harder tasks (`agent --big`) |
+| `granite4:tiny-h` | 4.2 GB | — | ~12 tok/s | quick questions (`ask`) |
 
-Measured on this machine with `scripts/bench.sh` (2026-10-30); both emitted correct tool calls.
+Measured on this machine with `scripts/bench.sh` (2026-10-30); both qwen models emitted
+correct tool calls.
+
+`granite4:tiny-h` (IBM, Apache-2.0) is a hybrid MoE with ~1B active parameters, so it
+generates ~2x faster than `qwen3.5:4b`; easy questions come back in 1–5 s. It was picked
+from a bake-off on easy factual/arithmetic/shell questions:
+
+| Candidate | Gen tok/s | Result |
+|---|---|---|
+| `gemma3:1b` | ~20 | fastest, but wrong arithmetic and wrong shell command |
+| `granite4:tiny-h` | ~12 | **picked** — all answers right or nearly so |
+| `qwen3.5:2b` | ~6 | correct-ish, no faster than `qwen3.5:4b` |
+| `llama3.2:3b` | ~7 | wrong shell command |
+
+Use it for lookups and explanations; double-check commands before running them, and use
+`agent` for anything that touches files.
 
 Why these: Qwen3.5 small models are Apache-2.0, support native tool calling, and are the
 strongest agentic models that fit in ~9 GB of free RAM. Rejected:
@@ -47,7 +63,16 @@ qwen3.5) and to `apt install` the Goose Desktop `.deb`.
 cd ~/Repos/<project>
 agent            # Goose on qwen3.5:4b
 agent --big      # Goose on qwen3.5:9b
+
+ask "how do I undo the last git commit?"   # fast one-shot answer (granite4:tiny-h)
+git diff | ask "summarize this diff"       # question from stdin
+ask                                        # interactive chat, /bye to quit
 ```
+
+Only one model stays loaded and one request runs at a time (RAM/CPU), so switching
+between `ask` and `agent` costs a few seconds to reload, and **`ask` queues behind a running
+`agent` turn** — Goose's first prompt is ~7k tokens (~8 min on this CPU). Ask quick
+questions between agent turns, not during them.
 
 Desktop: open **Goose** from the app menu; it picks up the same provider/model config.
 Switch models in its settings.
@@ -60,6 +85,7 @@ Tuning (16k context, q8 KV cache, 1 model loaded, 30 min keep-alive) lives in
 
 ```
 bin/agent                 terminal launcher (symlinked to ~/.local/bin/agent)
+bin/ask                   quick-question launcher (symlinked to ~/.local/bin/ask)
 config/ollama.service     user systemd unit (symlinked into ~/.config/systemd/user)
 config/goose-config.yaml  Goose defaults (copied to ~/.config/goose/config.yaml if absent)
 scripts/install.sh        idempotent setup
