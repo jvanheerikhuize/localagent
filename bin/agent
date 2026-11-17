@@ -16,4 +16,8 @@ if ! curl -fs http://localhost:11434/api/version >/dev/null; then
   exit 1
 fi
 
+export OLLAMA_TIMEOUT=600
+export OLLAMA_STREAM_TIMEOUT=600
+export GOOSE_STREAM_TIMEOUT=600
+
 GOOSE_PROVIDER=ollama GOOSE_MODEL=$model exec goose session "$@"
